@@ -41,15 +41,28 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }
     # For more information please check http://docs.vagrantup.com/v2/synced-folders/basic_usage.html
   end
-  (1..5).each do |i|
-    config.vm.define "impressiveClusterNode#{i}" do |dev|
-      dev.vm.hostname = "impressiveClusterNode#{i}"
+  # Masters
+  (1..3).each do |i|
+    config.vm.define "impressive-cluster-node#{i}" do |dev|
+      dev.vm.hostname = "impressive-cluster-node#{i}"
       dev.vm.network :private_network, ip: "192.168.33.#{i+10}"
       dev.vm.provider :virtualbox do |vb|
         vb.customize ["modifyvm", :id, "--memory", "2048"]
         vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       end
-      dev.vm.provision "shell", path: "impressive-cluster-provision.sh"
+      dev.vm.provision "shell", path: "impressive-cluster-provision.sh", args: "#{i} 1"
+    end
+  end
+  # Slaves
+  (4..5).each do |i|
+    config.vm.define "impressive-cluster-node#{i}" do |dev|
+      dev.vm.hostname = "impressive-cluster-node#{i}"
+      dev.vm.network :private_network, ip: "192.168.33.#{i+10}"
+      dev.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", "2048"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      dev.vm.provision "shell", path: "impressive-cluster-provision.sh", args: "#{i} 0"
     end
   end
 end
