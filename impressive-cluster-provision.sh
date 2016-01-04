@@ -95,7 +95,7 @@ EOF
 }
 
 function start_zookeeper {
-  if [[ masters_up_count -eq 3 ]]; then
+  if [[ $(masters_up_count) -eq 3 ]]; then
     echo "STARTING ZOOKEEPER"
   else
     echo "Skipping Zookeeper start up, waiting for more masters.."
