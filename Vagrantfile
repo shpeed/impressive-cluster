@@ -16,6 +16,8 @@
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
+VAGRANT_PREFIX = "trusty64-cluster"
+VAGRANT_NODE_PREFIX = "#{VAGRANT_PREFIX}-node"
 
 # 1.5.0 is required to use vagrant cloud images.
 # https://www.vagrantup.com/blog/vagrant-1-5-and-vagrant-cloud.html
@@ -43,26 +45,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   # Masters
   (1..3).each do |i|
-    config.vm.define "impressive-cluster-node#{i}" do |dev|
-      dev.vm.hostname = "impressive-cluster-node#{i}"
+    config.vm.define "#{VAGRANT_NODE_PREFIX}#{i}" do |dev|
+      dev.vm.hostname = "#{VAGRANT_NODE_PREFIX}#{i}"
       dev.vm.network :private_network, ip: "192.168.33.#{i+10}"
       dev.vm.provider :virtualbox do |vb|
         vb.customize ["modifyvm", :id, "--memory", "2048"]
         vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       end
-      dev.vm.provision "shell", path: "impressive-cluster-provision.sh", args: "#{i} 1"
+      dev.vm.provision "shell", path: "#{VAGRANT_PREFIX}-provision.sh", args: "#{i} #{VAGRANT_NODE_PREFIX} 1"
     end
   end
   # Slaves
   (4..5).each do |i|
-    config.vm.define "impressive-cluster-node#{i}" do |dev|
-      dev.vm.hostname = "impressive-cluster-node#{i}"
+    config.vm.define "#{VAGRANT_NODE_PREFIX}#{i}" do |dev|
+      dev.vm.hostname = "#{VAGRANT_NODE_PREFIX}#{i}"
       dev.vm.network :private_network, ip: "192.168.33.#{i+10}"
       dev.vm.provider :virtualbox do |vb|
         vb.customize ["modifyvm", :id, "--memory", "2048"]
         vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       end
-      dev.vm.provision "shell", path: "impressive-cluster-provision.sh", args: "#{i} 0"
+      dev.vm.provision "shell", path: "#{VAGRANT_PREFIX}-provision.sh", args: "#{i} #{VAGRANT_NODE_PREFIX} 0"
     end
   end
 end

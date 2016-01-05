@@ -15,7 +15,8 @@
 
 # Parameters
 readonly NODE_ID=$1
-readonly IS_MASTER=$2
+readonly HOSTNAME_PREFIX=$2
+readonly IS_MASTER=$3
 
 # Provision Config
 readonly MY_IP=$(ifconfig eth1 | grep 'inet addr' | cut -d' ' -f12 | cut -d: -f2)
@@ -31,8 +32,18 @@ echo "Master Node IP's:"
 echo ${MASTERS[@]}
 
 function install_master_utilities {
-  # So we can talk to the other masters
+  # So we can talk to the other vagrant masters
   apt-get -y install sshpass
+}
+
+function install_hosts {
+  # Hostname look up is used fro networking
+  cat > /etc/hosts <<EOF
+127.0.0.1 localhost
+$(echo $MASTER_IP_1 $HOSTNAME_PREFIX\1)
+$(echo $MASTER_IP_2 $HOSTNAME_PREFIX\2)
+$(echo $MASTER_IP_3 $HOSTNAME_PREFIX\3)
+EOF
 }
 
 function install_ssh_config {
@@ -69,7 +80,31 @@ function install_mesos {
 }
 
 function configure_mesos {
-  echo "NOT YET"
+  cat > /etc/mesos/zk <<EOF
+zk://$(echo $MASTER_IP_1):2181,$(echo $MASTER_IP_2):2181,$(echo $MASTER_IP_3):2181/mesos
+EOF
+  cat > /etc/mesos/hostname <<EOF
+$(echo $HOSTNAME)
+EOF
+}
+
+function configure_mesos_master {
+  cat > /etc/mesos-master/quorum <<EOF
+2
+EOF
+  cat > /etc/mesos-master/ip <<EOF
+$(echo $MY_IP)
+EOF
+}
+
+function configure_mesos_slave {
+  # Adding docker here before installing docker will cause slave process to fail
+  cat > /etc/mesos-slave/containerizers <<EOF
+mesos
+EOF
+  cat > /etc/mesos-slave/ip <<EOF
+$(echo $MY_IP)
+EOF
 }
 
 function disable_master {
@@ -88,18 +123,33 @@ initLimit=10
 syncLimit=5
 dataDir=/var/lib/zookeeper
 clientPort=2181
-server.1=$(echo MASTER_IP_1):2888:3888
-server.2=$(echo MASTER_IP_2):2888:3888
-server.3=$(echo MASTER_IP_3):2888:3888
+server.1=$(echo $MASTER_IP_1):2888:3888
+server.2=$(echo $MASTER_IP_2):2888:3888
+server.3=$(echo $MASTER_IP_3):2888:3888
 EOF
 }
 
 function start_zookeeper {
   if [[ $(masters_up_count) -eq 3 ]]; then
     echo "STARTING ZOOKEEPER"
+    echo ${MASTERS[@]} | xargs -n 1 echo | xargs -n 1 -I {} sshpass -p vagrant ssh vagrant@{} sudo service zookeeper restart || true
   else
-    echo "Skipping Zookeeper start up, waiting for more masters.."
+    echo "Skipping Zookeeper start up, waiting for our quorum.."
   fi
+}
+
+function start_mesos_master {
+  if [[ $(masters_up_count) -eq 3 ]]; then
+    echo "STARTING MESOS MASTER"
+    echo ${MASTERS[@]} | xargs -n 1 echo | xargs -n 1 -I {} sshpass -p vagrant ssh vagrant@{} sudo service mesos-master restart || true
+    sleep 10
+  else
+    echo "Skipping Mesos masters start up, waiting for our quorum.."
+  fi
+}
+
+function start_mesos_slave {
+  service mesos-slave restart || true
 }
 
 function disable_zookeeper {
@@ -115,22 +165,31 @@ function install_marathon {
 function setup_master {
   echo "Setting up a master node.."
   install_ssh_config
+  install_hosts
   install_master_utilities
   install_java
   install_mesos
   install_marathon
   configure_zookeeper
   configure_mesos
+  configure_mesos_master
+  configure_mesos_slave
   start_zookeeper
+  start_mesos_master
+  start_mesos_slave
 }
 
 function setup_slave {
   echo "Setting up a slave node.."
   install_ssh_config
+  install_hosts
   install_java
   install_mesos
   disable_zookeeper
   disable_master
+  configure_mesos
+  configure_mesos_slave
+  start_mesos_slave
 }
 
 function masters_up_count {
