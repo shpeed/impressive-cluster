@@ -162,6 +162,36 @@ function install_marathon {
   apt-get -y install marathon
 }
 
+function start_marathon {
+  if [[ $(masters_up_count) -eq 3 ]]; then
+    echo "STARTING MARATHON"
+    echo ${MASTERS[@]} | xargs -n 1 echo | xargs -n 1 -I {} sshpass -p vagrant ssh vagrant@{} sudo service marathon restart || true
+    sleep 15
+  else
+    echo "Skipping marathon start up, waiting for our quorum.."
+  fi
+}
+
+function install_mesos_dns {
+  echo "NOT IMPLEMENTED"
+}
+
+function configure_mesos_dns {
+  echo "NOT IMPLEMENTED"
+}
+
+function start_mesos_dns {
+  echo "NOT IMPLEMENTED"
+}
+
+function install_chronos {
+  echo "NOT IMPLEMENTED"
+}
+
+function install_docker {
+  echo "NOT IMPLEMENTED"
+}
+
 function setup_master {
   echo "Setting up a master node.."
   install_ssh_config
@@ -177,6 +207,10 @@ function setup_master {
   start_zookeeper
   start_mesos_master
   start_mesos_slave
+  start_marathon
+
+  # Configure mesos-dns last so dns can resolve before we have it set up
+  configure_mesos_dns
 }
 
 function setup_slave {
@@ -190,6 +224,9 @@ function setup_slave {
   configure_mesos
   configure_mesos_slave
   start_mesos_slave
+
+  # Configure mesos-dns last so dns can resolve before we have it set up
+  configure_mesos_dns
 }
 
 function masters_up_count {
