@@ -25,6 +25,8 @@ readonly MASTER_IP_2=192.168.33.12
 readonly MASTER_IP_3=192.168.33.13
 readonly MASTERS=($MASTER_IP_1 $MASTER_IP_2 $MASTER_IP_3)
 
+readonly MESOS_DNS_VERSION="v0.5.1"
+
 echo "Setting up impressive node $(echo $NODE_ID)"
 echo "Node IP:"
 echo $MY_IP
@@ -173,15 +175,61 @@ function start_marathon {
 }
 
 function install_mesos_dns {
-  echo "NOT IMPLEMENTED"
+  mkdir /usr/local/mesos-dns
+  wget https://github.com/mesosphere/mesos-dns/releases/download/$MESOS_DNS_VERSION/mesos-dns-$MESOS_DNS_VERSION-linux-amd64
+  mv ./mesos-dns-$MESOS_DNS_VERSION-linux-amd64 /usr/local/mesos-dns/mesos-dns
+  chmod +x /usr/local/mesos-dns/mesos-dns
+  cat > /usr/local/mesos-dns/config.json <<EOF
+{
+  "zk": "zk://$(echo $MASTER_IP_1):2181,$(echo $MASTER_IP_2):2181,$(echo $MASTER_IP_3):2181/mesos",
+  "refreshSeconds": 60,
+  "ttl": 60,
+  "domain": "mesos",
+  "port": 53,
+  "resolvers": ["10.0.2.3"],
+  "timeout": 5,
+  "httpon": true,
+  "dnson": true,
+  "httpport": 8123,
+  "externalon": true,
+  "listener": "$(echo $MY_IP)",
+  "SOAMname": "ns1.mesos",
+  "SOARname": "root.ns1.mesos",
+  "SOARefresh": 60,
+  "SOARetry":   600,
+  "SOAExpire":  86400,
+  "SOAMinttl": 60,
+  "IPSources": ["netinfo", "host"]
+}
+EOF
 }
 
 function configure_mesos_dns {
-  echo "NOT IMPLEMENTED"
+  # resolv.conf should be a symlink to /run/resolvconf/resolv.conf
+  cat > /etc/resolvconf/resolv.conf.d/head <<EOF
+nameserver $(echo $MASTER_IP_1)
+nameserver $(echo $MASTER_IP_2)
+nameserver $(echo $MASTER_IP_3)
+EOF
+  resolvconf -u
 }
 
 function start_mesos_dns {
-  echo "NOT IMPLEMENTED"
+  if [[ $(masters_up_count) -eq 3 ]]; then
+    echo "STARTING MESOS-DNS"
+    curl -H "Content-Type: application/json" -X POST -d \
+    '{
+    "cmd": "sudo  /usr/local/mesos-dns/mesos-dns -config=/usr/local/mesos-dns/config.json",
+    "cpus": 0.2,
+    "mem": 64,
+    "id": "mesos-dns",
+    "instances": 3,
+    "constraints": [["hostname", "UNIQUE"]]
+    }' \
+    http://localhost:8080/v2/apps
+  else
+    echo "Skipping mesos-dns start up, waiting for our quorum.."
+  fi
 }
 
 function install_chronos {
@@ -200,6 +248,7 @@ function setup_master {
   install_java
   install_mesos
   install_marathon
+  install_mesos_dns
   configure_zookeeper
   configure_mesos
   configure_mesos_master
@@ -208,6 +257,7 @@ function setup_master {
   start_mesos_master
   start_mesos_slave
   start_marathon
+  start_mesos_dns
 
   # Configure mesos-dns last so dns can resolve before we have it set up
   configure_mesos_dns

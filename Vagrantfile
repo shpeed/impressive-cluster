@@ -61,6 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       dev.vm.hostname = "#{VAGRANT_NODE_PREFIX}#{i}"
       dev.vm.network :private_network, ip: "192.168.33.#{i+10}"
       dev.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
         vb.customize ["modifyvm", :id, "--memory", "2048"]
         vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       end
