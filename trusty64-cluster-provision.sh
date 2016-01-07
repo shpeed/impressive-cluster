@@ -102,7 +102,7 @@ EOF
 function configure_mesos_slave {
   # Adding docker here before installing docker will cause slave process to fail
   cat > /etc/mesos-slave/containerizers <<EOF
-mesos
+mesos,docker
 EOF
   cat > /etc/mesos-slave/ip <<EOF
 $(echo $MY_IP)
@@ -255,7 +255,20 @@ function deploy_chronos {
 }
 
 function install_docker {
-  echo "NOT IMPLEMENTED"
+  apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 \
+  --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+  cat > /etc/apt/sources.list.d/docker.list <<EOF
+deb https://apt.dockerproject.org/repo ubuntu-trusty main
+EOF
+  apt-get update
+  apt-get purge lxc-docker
+  apt-get -y install linux-image-extra-$(uname -r)
+  apt-get -y install docker-engine
+  service docker restart
+
+  # Check docker is set up right
+  docker run hello-world
+  docker rmi -f hello-world
 }
 
 function setup_master {
@@ -268,6 +281,7 @@ function setup_master {
   install_marathon
   install_mesos_dns
   install_chronos
+  install_docker
   configure_zookeeper
   configure_mesos
   configure_mesos_master
@@ -289,6 +303,7 @@ function setup_slave {
   install_hosts
   install_java
   install_mesos
+  install_docker
   disable_zookeeper
   disable_master
   configure_mesos
