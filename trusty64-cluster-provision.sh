@@ -214,9 +214,9 @@ EOF
   resolvconf -u
 }
 
-function start_mesos_dns {
+function deploy_mesos_dns {
   if [[ $(masters_up_count) -eq 3 ]]; then
-    echo "STARTING MESOS-DNS"
+    echo "DEPLOYING MESOS-DNS"
     curl -H "Content-Type: application/json" -X POST -d \
     '{
     "cmd": "sudo  /usr/local/mesos-dns/mesos-dns -config=/usr/local/mesos-dns/config.json",
@@ -233,7 +233,25 @@ function start_mesos_dns {
 }
 
 function install_chronos {
-  echo "NOT IMPLEMENTED"
+  apt-get -y install chronos
+}
+
+function deploy_chronos {
+  if [[ $(masters_up_count) -eq 3 ]]; then
+    echo "DEPLOYING CHRONOS"
+    curl -H "Content-Type: application/json" -X POST -d \
+    '{
+    "cmd": "sudo /usr/bin/chronos",
+    "cpus": 0.2,
+    "mem": 64,
+    "id": "chronos",
+    "instances": 3,
+    "constraints": [["hostname", "UNIQUE"]]
+    }' \
+    http://localhost:8080/v2/apps
+  else
+    echo "Skipping chronos start up, waiting for our quorum.."
+  fi
 }
 
 function install_docker {
@@ -249,6 +267,7 @@ function setup_master {
   install_mesos
   install_marathon
   install_mesos_dns
+  install_chronos
   configure_zookeeper
   configure_mesos
   configure_mesos_master
@@ -257,7 +276,8 @@ function setup_master {
   start_mesos_master
   start_mesos_slave
   start_marathon
-  start_mesos_dns
+  deploy_mesos_dns
+  deploy_chronos
 
   # Configure mesos-dns last so dns can resolve before we have it set up
   configure_mesos_dns
