@@ -1,0 +1,17 @@
+---
+
+- name: Generate root sshkey
+  user: >
+    name=root
+    generate_ssh_key=yes
+    ssh_key_bits=4096
+    ssh_key_type=rsa
+    ssh_key_file=/root/.ssh/id_rsa_{{ ansible_hostname }}
+  register: rootkeys
+
+- name: Place public keys in authorized_keys
+  authorized_key: >
+    key="{{ hostvars[item].rootkeys.ssh_public_key }}"
+    state=present
+    user=root
+  with_items: "{{groups['cluster']}}"

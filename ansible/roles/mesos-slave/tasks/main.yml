@@ -1,0 +1,16 @@
+---
+
+- include: ./configs/configure-mesos-slave.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/stop-zookeeper.yml
+  when: ansible_os_family == 'Debian' and not ansible_hostname in groups['masters']
+
+- include: ./services/stop-mesos-master.yml
+  when: ansible_os_family == 'Debian' and not ansible_hostname in groups['masters']
+
+- include: ./services/start-mesos-slave.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-mesos-dns.yml
+  when: ansible_os_family == 'Debian'

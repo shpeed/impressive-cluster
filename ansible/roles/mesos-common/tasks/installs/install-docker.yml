@@ -1,0 +1,54 @@
+---
+
+- name: Add docker apt-key
+  apt_key:
+    keyserver: hkp://p80.pool.sks-keyservers.net:80
+    id: 58118E89F3A912897C070ADBF76221572C52609D
+
+- name: Add docker repository
+  apt_repository:
+    repo: 'deb https://apt.dockerproject.org/repo {{ ansible_distribution|lower }}-{{ ansible_lsb.codename }} main'
+    state: present
+
+- name: Purge older Docker version
+  apt:
+    name: lxc-docker
+    state: absent
+    purge: yes
+
+- name: Install Docker
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items: 
+    - linux-image-extra-{{ ansible_kernel }}
+    - docker-engine
+    - python-pip
+
+- name: Install Docker PY
+  pip: 
+    name: docker-py
+    version: 1.2.3
+
+- name: Setup sudoless Docker for Vagrant user
+  shell: gpasswd -a vagrant docker
+
+- name: Restart Docker
+  service:
+    name: docker
+    state: restarted
+
+- name: Run Docker Hello World
+  docker:
+    docker_api_version: auto
+    name: Test-Hello-World
+    image: hello-world
+    state: started
+
+- name: Remove Docker Hello World
+  docker:
+    docker_api_version: auto
+    image: hello-world
+    state: absent

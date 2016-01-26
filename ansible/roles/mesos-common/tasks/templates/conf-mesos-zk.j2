@@ -1,0 +1,7 @@
+zk://{% for host in groups['masters'] -%}
+  {{ hostvars[host]['ansible_eth1']['ipv4']['address'] }}:{{ zookeeper_client_port }}
+  {%- if not loop.last -%}
+    ,
+  {%- endif -%}
+{%- endfor %}
+/mesos

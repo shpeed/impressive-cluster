@@ -1,0 +1,18 @@
+---
+
+mesos_dns_version: "v0.5.1"
+
+# Zookeeper
+tick_time: 2000
+init_limit: 10
+sync_limit: 5
+data_dir: '/var/lib/zookeeper'
+zookeeper_client_port: 2181
+zookeeper_server_port: 2888
+zookeeper_election_port: 3888
+
+# Mesos Master
+mesos_master_port: 5050
+
+# Marathon Port
+marathon_port: 8080

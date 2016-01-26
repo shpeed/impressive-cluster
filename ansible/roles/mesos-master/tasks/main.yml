@@ -1,0 +1,37 @@
+---
+
+- include: ./installs/install-marathon.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./installs/install-mesos-dns.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./installs/install-chronos.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-zookeeper.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-mesos-master.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-marathon.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-chronos.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/start-zookeeper.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/start-mesos-master.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/start-marathon.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/deploy-chronos.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./services/deploy-mesos-dns.yml
+  when: ansible_os_family == 'Debian'

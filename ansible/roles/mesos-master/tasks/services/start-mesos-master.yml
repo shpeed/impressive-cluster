@@ -1,0 +1,17 @@
+---
+
+- name: Restarting Mesos Master
+  service:
+    name: mesos-master
+    state: restarted
+
+- name: Check Mesos Masters
+  wait_for:
+    host: "{{ item[0] }}"
+    port: "{{ item[1] }}"
+    state: started
+    timeout: 60
+  when: ansible_hostname != item[0]
+  with_nested:
+    - "{{ groups['masters'] }}"
+    - [ "{{ mesos_master_port }}" ]

@@ -1,0 +1,11 @@
+---
+
+- name: Configure Mesos Slave Containerizers
+  template:
+    src: conf-mesos-slave-containerizers.j2
+    dest: /etc/mesos-slave/containerizers
+
+- name: Configure Mesos Slave IP
+  template:
+    src: conf-mesos-slave-ip.j2
+    dest: /etc/mesos-slave/ip

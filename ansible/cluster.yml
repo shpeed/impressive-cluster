@@ -1,0 +1,17 @@
+---
+# Defines deployment design and assigns role to server groups
+
+- hosts: cluster
+  sudo: True
+  roles:
+  - secure-cluster-communication
+
+- hosts: masters
+  sudo: True
+  roles:
+  - mesos-master
+
+- hosts: slaves
+  sudo: True
+  roles:
+  - mesos-slave

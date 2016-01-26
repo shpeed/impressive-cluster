@@ -1,0 +1,8 @@
+{
+    "cmd": "sudo /usr/bin/chronos",
+    "cpus": 0.2,
+    "mem": 64,
+    "id": "chronos",
+    "instances": 3,
+    "constraints": [["hostname", "UNIQUE"]],
+}

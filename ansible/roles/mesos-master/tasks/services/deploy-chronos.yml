@@ -1,0 +1,18 @@
+---
+
+- set_fact:
+    chronos_request_body: "{{ lookup('file', chronos_request_dir) }}"
+
+- name: Deploy Chronos using Marathon
+  command: >
+    curl -H "Content-Type: application/json" -X POST  -d '{{ chronos_request_body | to_json }}' http://{{ groups['masters'][0] }}:8080/v2/apps
+  run_once: true
+
+  # Module solution doesn't work because
+  # https://github.com/ansible/ansible-modules-core/issues/265
+  # uri:
+  #   url: "http://{{ groups['masters'][0] }}:8080/v2/apps"
+  #   method: POST
+  #   body: "\"{{ chronos_request }}\""
+  #   HEADER_Content-Type: "application/json"
+  #   status_code: 201

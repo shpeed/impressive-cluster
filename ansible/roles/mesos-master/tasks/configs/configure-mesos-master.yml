@@ -1,0 +1,16 @@
+---
+
+- name: Configure Mesos Master Quorum
+  template:
+    src: conf-quorum.j2
+    dest: /etc/mesos-master/quorum
+
+- name: Configure Mesos Master IP
+  template:
+    src: conf-ip.j2
+    dest: /etc/mesos-master/ip
+
+- name: Configure Mesos Master Hostname
+  template:
+    src: conf-hostname.j2
+    dest: /etc/mesos-master/hostname

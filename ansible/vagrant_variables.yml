@@ -1,0 +1,20 @@
+---
+
+# Define the cluster size
+master_nodes: 3
+slave_nodes: 3
+
+# Should Master nodes run slaves processes
+master_slave_overlap: true
+
+# MEMORY
+memory: 2048
+
+# SUBNET TO USE FOR THE VMS
+subnet: 192.168.33
+
+# Vagrant box to use
+vagrant_box: ubuntu/trusty64
+
+# Host naming convention
+vagrant_prefix: "trusty64-cluster"

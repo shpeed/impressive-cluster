@@ -1,0 +1,55 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+VAGRANTFILE_API_VERSION = '2'
+
+config_file=File.expand_path(File.join(File.dirname(__FILE__), 'vagrant_variables.yml'))
+settings=YAML.load_file(config_file)
+
+NUM_MASTERS         = settings['master_nodes']
+NUM_SLAVES          = settings['slave_nodes']
+OVERLAP             = settings['master_slave_overlap']
+MEMORY              = settings['memory']
+SUBNET              = settings['subnet']
+VAGRANT_PREFIX      = settings['vagrant_prefix']
+VAGRANT_NODE_PREFIX = "#{VAGRANT_PREFIX}-node"
+BOX                 = settings['vagrant_box']
+
+ansible_provision = proc do |ansible|
+  ansible.playbook = 'cluster.yml'
+
+  ansible.groups = {
+    'masters' => (1..NUM_MASTERS).map { |i| "#{VAGRANT_NODE_PREFIX}#{i}" }
+  }
+  zookeepers = Hash.new
+  (1..NUM_MASTERS).map { |i| zookeepers.update("#{VAGRANT_NODE_PREFIX}#{i}" => "#{i}")}
+  ansible.extra_vars = {
+    zookeeper_ids: zookeepers
+  }
+
+  slave_count_start = OVERLAP ? 1 : NUM_MASTERS + 1
+  ansible.groups.update({'slaves' => (slave_count_start..(slave_count_start + NUM_SLAVES)).map { |i| "#{VAGRANT_NODE_PREFIX}#{i}" }})
+  ansible.groups.update({'cluster' => (1..(slave_count_start + NUM_SLAVES)).map { |i| "#{VAGRANT_NODE_PREFIX}#{i}" }})
+  ansible.limit = 'all'
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = BOX
+  num_nodes = OVERLAP ? NUM_SLAVES : NUM_MASTERS + NUM_SLAVES
+  (1..num_nodes).each do |i|
+    config.vm.define "#{VAGRANT_NODE_PREFIX}#{i}" do |dev|
+      dev.vm.hostname = "#{VAGRANT_NODE_PREFIX}#{i}"
+      dev.vm.network :private_network, ip: "#{SUBNET}.1#{i}"
+      dev.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--cpus", "1"]
+        vb.customize ["modifyvm", :id, "--memory", "#{MEMORY}"]
+        vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      end
+      # dev.vm.provision "shell", path: "#{VAGRANT_PREFIX}-provision.sh", args: "#{i} #{VAGRANT_NODE_PREFIX} 1"
+
+      # Run the provisioner after the last machine comes up
+      dev.vm.provision 'ansible', &ansible_provision if i == (num_nodes)
+    end
+  end
+end

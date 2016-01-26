@@ -1,0 +1,27 @@
+{
+  "zk": "zk://{% for host in groups['masters'] -%}
+  {{ hostvars[host]['ansible_eth1']['ipv4']['address'] }}:{{ zookeeper_client_port }}
+  {%- if not loop.last -%}
+    ,
+  {%- endif -%}
+{%- endfor %}
+/mesos",
+  "refreshSeconds": 60,
+  "ttl": 60,
+  "domain": "mesos",
+  "port": 53,
+  "resolvers": ["10.0.2.3"],
+  "timeout": 5,
+  "httpon": true,
+  "dnson": true,
+  "httpport": 8123,
+  "externalon": true,
+  "listener": "{{ hostvars[ansible_hostname]['ansible_eth1']['ipv4']['address'] }}",
+  "SOAMname": "ns1.mesos",
+  "SOARname": "root.ns1.mesos",
+  "SOARefresh": 60,
+  "SOARetry":   600,
+  "SOAExpire":  86400,
+  "SOAMinttl": 60,
+  "IPSources": ["netinfo", "host"]
+}

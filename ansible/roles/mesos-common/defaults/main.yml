@@ -1,0 +1,8 @@
+---
+
+zookeeper_client_port: "2181"
+
+chronos_request_dir: "{{playbook_dir}}/roles/mesos-master/tasks/json/deploy-chronos.json"
+
+mesos_dns_request_dir: "{{playbook_dir}}/roles/mesos-master/tasks/json/deploy-mesos-dns.json"
+

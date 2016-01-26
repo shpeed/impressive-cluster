@@ -1,0 +1,11 @@
+---
+
+- name: Configure Zookeeper Server Id
+  template: 
+    src: conf-zookeeper-myid.j2 
+    dest: /etc/zookeeper/conf/myid
+
+- name: Configure Zookeeper Server Settings
+  template: 
+    src: conf-zookeeper-cfg.j2 
+    dest: /etc/zookeeper/conf/zoo.cfg

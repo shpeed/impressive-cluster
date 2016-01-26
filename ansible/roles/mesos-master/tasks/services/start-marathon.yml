@@ -1,0 +1,19 @@
+---
+
+# Ansible can't run one task serially when in parallel mode,
+# but we can mimic this behavior with a variable sleep delay
+- name: Starting Marathon # Serially
+  service:
+    name: marathon
+    state: restarted
+
+- name: Check Marathon
+  wait_for:
+    host: "{{ item[0] }}"
+    port: "{{ item[1] }}"
+    delay: 5
+    state: started
+    timeout: 60
+  with_nested:
+    - "{{ groups['masters'] }}"
+    - [ "{{ marathon_port }}" ]

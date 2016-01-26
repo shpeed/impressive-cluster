@@ -1,0 +1,19 @@
+---
+
+- name: Wait until DNS Servers are up
+  wait_for:
+    host: "{{ item }}"
+    port: 53
+    state: started
+    timeout: 60
+  when: ansible_hostname != item
+  with_items:
+    - "{{ groups['masters'] }}"
+
+- name: Set Mesos DNS servers
+  template:
+    src: conf-resolvconf-header.j2
+    dest: /etc/resolvconf/resolv.conf.d/head
+
+- name: Update resolvconf
+  command: resolvconf -u

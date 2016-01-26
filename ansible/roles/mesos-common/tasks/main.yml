@@ -1,0 +1,13 @@
+---
+
+- include: ./installs/install-java8-oracle.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./installs/install-mesos.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./installs/install-docker.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./configs/configure-mesos-base.yml
+  when: ansible_os_family == 'Debian'

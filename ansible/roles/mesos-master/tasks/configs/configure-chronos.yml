@@ -1,0 +1,21 @@
+---
+
+- name: Create Chronos Configuration directory
+  file:
+    path: /etc/chronos/conf
+    state: directory
+
+# - name: Configure Chronos Quorum
+#   template:
+#     src: conf-quorum.j2
+#     dest: /etc/chronos/conf/quorum
+
+# - name: Configure Chronos IP
+#   template:
+#     src: conf-ip.j2
+#     dest: /etc/chronos/conf/ip
+
+- name: Configure Chronos Hostname
+  template:
+    src: conf-hostname.j2
+    dest: /etc/chronos/conf/hostname

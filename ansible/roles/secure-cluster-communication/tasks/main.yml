@@ -1,0 +1,10 @@
+---
+
+- include: ./configs/configure-hosts.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./security/key-scan-cluster-host-identities.yml
+  when: ansible_os_family == 'Debian'
+
+- include: ./security/create-and-distribute-ssh-keys.yml
+  when: ansible_os_family == 'Debian'

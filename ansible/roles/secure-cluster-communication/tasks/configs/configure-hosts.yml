@@ -1,0 +1,7 @@
+---
+
+- name: Configure Hosts file
+  template:
+    force: yes
+    src: conf-hosts.j2
+    dest: /etc/hosts

@@ -1,0 +1,14 @@
+---
+
+- name: Stopping Zookeeper
+  service:
+    name: zookeeper
+    state: stopped
+
+- name: Set Manual Zookeeper Override
+  template:
+    src: conf-manual-override.j2
+    dest: /etc/init/zookeeper.override
+
+- name: Remove Zookeeper from update-rc.d
+  command: update-rc.d -f zookeeper remove

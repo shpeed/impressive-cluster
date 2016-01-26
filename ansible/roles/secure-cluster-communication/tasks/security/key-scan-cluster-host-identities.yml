@@ -1,0 +1,5 @@
+---
+
+- name: Key Scan Cluster
+  shell: (ssh-keyscan {{item}} && cat /root/.ssh/known_hosts | sort | uniq) > /root/.ssh/known_hosts.tmp && (sort /root/.ssh/known_hosts.tmp | uniq) > /root/.ssh/known_hosts && rm /root/.ssh/known_hosts.tmp
+  with_items: "{{groups['cluster']}}"

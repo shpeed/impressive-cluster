@@ -1,0 +1,16 @@
+---
+
+- name: Configure Zookeeper
+  template: 
+    src: conf-mesos-zk.j2 
+    dest: /etc/mesos/zk
+
+- name: Configure Hostname
+  template: 
+    src: conf-mesos-hostname.j2 
+    dest: /etc/mesos/hostname
+
+- name: Configure IP address
+  template: 
+    src: conf-mesos-ip.j2 
+    dest: /etc/mesos/ip

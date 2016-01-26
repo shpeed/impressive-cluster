@@ -1,0 +1,21 @@
+---
+
+- name: Create Marathon Configuration directory
+  file:
+    path: /etc/marathon/conf
+    state: directory
+
+# - name: Configure Marathon Quorum
+#   template:
+#     src: conf-quorum.j2
+#     dest: /etc/marathon/conf/quorum
+
+# - name: Configure Marathon IP
+#   template:
+#     src: conf-ip.j2
+#     dest: /etc/marathon/conf/ip
+
+- name: Configure Marathon Hostname
+  template:
+    src: conf-hostname.j2
+    dest: /etc/marathon/conf/hostname

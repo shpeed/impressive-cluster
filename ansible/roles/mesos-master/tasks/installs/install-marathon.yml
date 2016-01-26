@@ -1,0 +1,8 @@
+---
+
+- name: Install latest Marathon
+  apt:
+    name: marathon
+    state: latest
+    update_cache: yes
+    cache_valid_time: 3600
